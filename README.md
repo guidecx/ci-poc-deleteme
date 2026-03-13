@@ -1,5 +1,5 @@
 # How to set up manual approvals with Github Enhukvironments
-Commit 4
+Commit 5
 This repo shows how to set up GitHub approval gates that will require a user to [review and approve](https://docs.github.com/en/actions/managing-workflow-runs/reviewing-deployments) the changes before they are deployed to an individual [environment](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment).
 
 ![Enable Workflow Write permissions](docs/images/enable-workflow-write-permissions.png)
@@ -66,7 +66,7 @@ Here is a high-level workflow for building and deploying a project:
 Once the workflow is triggered (by push, pr, schedule or dispatch), it will run until a manual approval is required.
 
 ![Waiting for manual approval to deploy to Staging](docs/images/waiting-for-manual-approval.png)
-Figure: Waiting for manual approval to deploy to Staging
+Figure: Waiting for manual approval to deploy to Staging 
 
 Once the reviewer has approved, the workflow will continue until it reaches another approval or reaches the end of the workflow.
 
