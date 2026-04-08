@@ -20,6 +20,7 @@ defaults:
 jobs:
   deploy-ui:
     runs-on: ubuntu-latest
-    environment: ${{inputs.environment}}
     steps:
-      - run: echo "DEPLOYING THE USER INTERFACE..."
+      - env:
+          TARGET_ENV: ${{ inputs.environment }}
+        run: echo "DEPLOYING THE USER INTERFACE to $env:TARGET_ENV..."

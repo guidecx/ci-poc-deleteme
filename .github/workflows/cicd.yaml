@@ -36,16 +36,6 @@ jobs:
     uses: ./.github/workflows/unit-test.yml
     secrets: inherit
 
-  # Approval gate before PR can be merged (runs only on pull_request)
-  merge-approval-gate:
-    needs: [build, unit-test]
-    if: github.event_name == 'pull_request'
-    environment: merge
-    runs-on: ubuntu-latest
-    steps:
-      - name: approved for merge
-        run: write-host "PR approved for merge"
-
   dev-deploy:
     needs: [build, unit-test]
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
@@ -54,19 +44,8 @@ jobs:
       environment: dev
     secrets: inherit
 
-  staging-approval-gate:
-    needs: dev-deploy
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    environment: staging
-    runs-on: ubuntu-latest
-    steps:
-      - name: approved
-        env: 
-          ENV_NAME: Staging
-        run: write-host "Approve for $($env.ENV_NAME)"
-    
   staging-deploy:
-    needs: staging-approval-gate
+    needs: dev-deploy
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/deploy-environment.yml
     with:

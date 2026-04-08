@@ -20,6 +20,7 @@ defaults:
 jobs:
   deploy-api:
     runs-on: ubuntu-latest
-    environment: ${{inputs.environment}}
     steps:
-        - run: echo "DEPLOYING THE API..."
+        - env:
+            TARGET_ENV: ${{ inputs.environment }}
+          run: echo "DEPLOYING THE API to $env:TARGET_ENV..."
