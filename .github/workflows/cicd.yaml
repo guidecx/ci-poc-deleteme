@@ -9,10 +9,6 @@ on:
       - LICENSE
       - README.md
 
-  pull_request:
-    branches:
-      - main
-
   merge_group:
     types: [checks_requested]
 
@@ -27,23 +23,16 @@ defaults:
     shell: pwsh
 
 jobs:
-  
+  # Tests only in merge queue (preview merge includes prior queued PRs).
   build:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'merge_group'
     uses: ./.github/workflows/build.yml
     secrets: inherit
 
   unit-test:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'merge_group'
     uses: ./.github/workflows/unit-test.yml
     secrets: inherit
-
-  # Merge queue needs a green check; tests already ran on the PR (see branch protection note in README).
-  merge-queue-pass:
-    if: github.event_name == 'merge_group'
-    runs-on: ubuntu-latest
-    steps:
-      - run: write-host "Merge queue gate (no duplicate build/test)."
 
   staging-deploy:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
