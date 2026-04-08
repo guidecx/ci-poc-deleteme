@@ -15,7 +15,7 @@ To add a new Environment:
 ![No Environments](docs/images/no-environments.png)
 Figure: No environments (yet)
 
-3. Give the environment a name (e.g. **merge**, dev, staging, prod)
+3. Give the environment a name (e.g. **merge**, staging, prod)
    - Create a **merge** environment first — this is used as the approval gate before a PR can be merged (after build and tests pass).
 4. Select **Configure environment**
 
@@ -34,7 +34,7 @@ Figure: Adding required reviewers
 Figure: Prevent Admins from doing dodgy things!
 
 1. Select **Save protection rules**
-2. Repeat for other environments (merge, dev, staging, prod)
+2. Repeat for other environments (merge, staging, prod)
 
 ![Environments](docs/images/all-environments.png)
 Figure: All configured environments
@@ -59,9 +59,8 @@ Here is a high-level workflow for building and deploying a project:
 
 **On push to main (e.g. after PR merge):**
 1. In parallel: build WebAPI, build UI, run unit tests.
-2. Automatically deploy to `dev`.
-3. After review and manual approval, deploy to `staging`.
-4. After review and manual approval, deploy to `prod`.
+2. Automatically deploy to `staging`.
+3. After review and manual approval, deploy to `prod`.
 
 Once the workflow is triggered (by push, pr, schedule or dispatch), it will run until a manual approval is required.
 

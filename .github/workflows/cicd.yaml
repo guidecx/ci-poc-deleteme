@@ -1,4 +1,4 @@
-name: CICD (Dev, Staging, Prod)
+name: CICD (Staging, Prod)
 
 on:
   push:
@@ -36,16 +36,8 @@ jobs:
     uses: ./.github/workflows/unit-test.yml
     secrets: inherit
 
-  dev-deploy:
-    needs: [build, unit-test]
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    uses: ./.github/workflows/deploy-environment.yml
-    with:
-      environment: dev
-    secrets: inherit
-
   staging-deploy:
-    needs: dev-deploy
+    needs: [build, unit-test]
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/deploy-environment.yml
     with:
