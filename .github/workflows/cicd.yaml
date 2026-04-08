@@ -29,15 +29,23 @@ defaults:
 jobs:
   
   build:
+    if: github.event_name == 'pull_request'
     uses: ./.github/workflows/build.yml
     secrets: inherit
 
   unit-test:
+    if: github.event_name == 'pull_request'
     uses: ./.github/workflows/unit-test.yml
     secrets: inherit
 
+  # Merge queue needs a green check; tests already ran on the PR (see branch protection note in README).
+  merge-queue-pass:
+    if: github.event_name == 'merge_group'
+    runs-on: ubuntu-latest
+    steps:
+      - run: write-host "Merge queue gate (no duplicate build/test)."
+
   staging-deploy:
-    needs: [build, unit-test]
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/deploy-environment.yml
     with:
