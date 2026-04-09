@@ -26,28 +26,22 @@ jobs:
     with:
       environment: staging
     secrets: inherit
-
   prod-approval-gate:
     needs: staging-deploy
-    if: github.event.pull_request.merged == true
-    concurrency:
-      group: deploy-prod
-      cancel-in-progress: false
+    # REMOVED concurrency from here.
+    # Now 30 runs can sit here waiting for a human at once.
     environment: prod
     runs-on: ubuntu-latest
     steps:
-      - name: approved
-        env:
-          ENV_NAME: prod
-        run: write-host "Approve for $($env:ENV_NAME)"
+      - run: echo "Waiting for human to click Approve..."
 
   prod-deploy:
     needs: prod-approval-gate
-    if: github.event.pull_request.merged == true
+    # KEEP concurrency here.
+    # Once approved, they will enter the "1 Running + 1 Pending" queue.
     concurrency:
       group: deploy-prod
       cancel-in-progress: false
     uses: ./.github/workflows/deploy-environment.yml
     with:
       environment: prod
-    secrets: inherit
