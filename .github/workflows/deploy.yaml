@@ -11,10 +11,6 @@ on:
       - LICENSE
       - README.md
 
-concurrency:
-  group: ${{ format('{0}-deploy-main', github.workflow) }}
-  cancel-in-progress: false
-
 permissions:
   id-token: write
   contents: read
@@ -34,6 +30,9 @@ jobs:
   prod-approval-gate:
     needs: staging-deploy
     if: github.event.pull_request.merged == true
+    concurrency:
+      group: deploy-prod
+      cancel-in-progress: false
     environment: prod
     runs-on: ubuntu-latest
     steps:
@@ -45,6 +44,9 @@ jobs:
   prod-deploy:
     needs: prod-approval-gate
     if: github.event.pull_request.merged == true
+    concurrency:
+      group: deploy-prod
+      cancel-in-progress: false
     uses: ./.github/workflows/deploy-environment.yml
     with:
       environment: prod
