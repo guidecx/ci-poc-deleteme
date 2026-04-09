@@ -1,4 +1,4 @@
-name: CICD (Staging, Prod)
+name: CICD
 
 on:
   push:
@@ -9,10 +9,12 @@ on:
       - LICENSE
       - README.md
 
+  pull_request:
+    branches:
+      - main
+
   merge_group:
     types: [checks_requested]
-
-  workflow_dispatch:
 
 permissions:
   id-token: write
@@ -23,19 +25,32 @@ defaults:
     shell: pwsh
 
 jobs:
-  # Tests only in merge queue (preview merge includes prior queued PRs).
+  # PR: build + unit tests (required before merge queue).
   build:
-    if: github.event_name == 'merge_group'
+    if: github.event_name == 'pull_request'
     uses: ./.github/workflows/build.yml
     secrets: inherit
 
   unit-test:
-    if: github.event_name == 'merge_group'
+    if: github.event_name == 'pull_request'
     uses: ./.github/workflows/unit-test.yml
     secrets: inherit
 
+  # Same check name for PR + merge queue (GitHub couples required checks). Heavy work only on merge_group.
+  integration-test:
+    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deferred (satisfies required check on PR)
+        if: github.event_name == 'pull_request'
+        run: write-host "Integration runs on merge queue preview only."
+      - name: Integration tests
+        if: github.event_name == 'merge_group'
+        run: write-host "INTEGRATION TESTS (merge queue preview)..."
+
+  # Deploy only after merge lands on main (push).
   staging-deploy:
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'push'
     uses: ./.github/workflows/deploy-environment.yml
     with:
       environment: staging
@@ -43,18 +58,18 @@ jobs:
 
   prod-approval-gate:
     needs: staging-deploy
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'push'
     environment: prod
     runs-on: ubuntu-latest
     steps:
       - name: approved
-        env: 
+        env:
           ENV_NAME: prod
-        run: write-host "Approve for $($env.ENV_NAME)"
-    
+        run: write-host "Approve for $($env:ENV_NAME)"
+
   prod-deploy:
     needs: prod-approval-gate
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'push'
     uses: ./.github/workflows/deploy-environment.yml
     with:
       environment: prod
