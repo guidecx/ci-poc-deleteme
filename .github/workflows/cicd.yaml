@@ -36,17 +36,13 @@ jobs:
     uses: ./.github/workflows/unit-test.yml
     secrets: inherit
 
-  # Same check name for PR + merge queue (GitHub couples required checks). Heavy work only on merge_group.
+  # Same check name for PR + merge queue; reusable workflow runs heavy steps only when full_integration.
   integration-test:
     if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deferred (satisfies required check on PR)
-        if: github.event_name == 'pull_request'
-        run: write-host "Integration runs on merge queue preview only."
-      - name: Integration tests
-        if: github.event_name == 'merge_group'
-        run: write-host "INTEGRATION TESTS (merge queue preview)..."
+    uses: ./.github/workflows/integration.yml
+    with:
+      full_integration: ${{ github.event_name == 'merge_group' }}
+    secrets: inherit
 
   # Deploy only after merge lands on main (push).
   staging-deploy:
