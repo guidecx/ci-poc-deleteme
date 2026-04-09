@@ -1,0 +1,51 @@
+name: Deploy
+
+# Runs when a PR is merged into main — not on PR open/sync (those stay in CI).
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+    paths-ignore:
+      - .gitignore
+      - LICENSE
+      - README.md
+
+concurrency:
+  group: ${{ format('{0}-deploy-main', github.workflow) }}
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  staging-deploy:
+    if: github.event.pull_request.merged == true
+    uses: ./.github/workflows/deploy-environment.yml
+    with:
+      environment: staging
+    secrets: inherit
+
+  prod-approval-gate:
+    needs: staging-deploy
+    if: github.event.pull_request.merged == true
+    environment: prod
+    runs-on: ubuntu-latest
+    steps:
+      - name: approved
+        env:
+          ENV_NAME: prod
+        run: write-host "Approve for $($env:ENV_NAME)"
+
+  prod-deploy:
+    needs: prod-approval-gate
+    if: github.event.pull_request.merged == true
+    uses: ./.github/workflows/deploy-environment.yml
+    with:
+      environment: prod
+    secrets: inherit
