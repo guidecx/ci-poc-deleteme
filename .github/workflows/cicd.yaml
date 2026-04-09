@@ -25,15 +25,19 @@ defaults:
     shell: pwsh
 
 jobs:
-  # PR: build + unit tests (required before merge queue).
+  # Build + unit on PR only; merge queue gets defer no-ops (same required check names as integration pattern inverted).
   build:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
     uses: ./.github/workflows/build.yml
+    with:
+      run_build: ${{ github.event_name == 'pull_request' }}
     secrets: inherit
 
   unit-test:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
     uses: ./.github/workflows/unit-test.yml
+    with:
+      run_tests: ${{ github.event_name == 'pull_request' }}
     secrets: inherit
 
   # Same check name for PR + merge queue; reusable workflow runs heavy steps only when full_integration.

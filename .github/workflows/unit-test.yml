@@ -1,11 +1,27 @@
 name: unit-test
 
 on:
-  # This is a reusable workflow
   workflow_call:
+    inputs:
+      run_tests:
+        description: "When true (PR), run unit tests. When false (merge queue), defer."
+        type: boolean
+        required: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: pwsh
 
 jobs:
   unit-test:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "TESTING THE CODE..."
+      - name: Deferred (unit tests run on PR only)
+        if: ${{ !inputs.run_tests }}
+        run: write-host "Unit tests deferred; merge queue uses integration tests on preview."
+      - name: Unit tests
+        if: inputs.run_tests
+        run: write-host "TESTING THE CODE..."

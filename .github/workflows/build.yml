@@ -1,11 +1,27 @@
 name: Build Code
 
 on:
-  # This is a reusable workflow
   workflow_call:
+    inputs:
+      run_build:
+        description: "When true (PR), build. When false (merge queue), defer."
+        type: boolean
+        required: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: pwsh
 
 jobs:
   build-code:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "BUILDING THE CODE..."
+      - name: Deferred (build runs on PR only)
+        if: ${{ !inputs.run_build }}
+        run: write-host "Build deferred; merge queue uses integration tests on preview."
+      - name: Build
+        if: inputs.run_build
+        run: write-host "BUILDING THE CODE..."
