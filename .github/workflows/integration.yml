@@ -28,3 +28,4 @@ jobs:
         run: |
           sleep 10
           write-host "INTENTIONAL FAIL — remove this step's exit 1 after testing merge queue / PR behavior."
+          exit 1
