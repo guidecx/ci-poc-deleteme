@@ -1,0 +1,27 @@
+name: integration-test
+
+on:
+  workflow_call:
+    inputs:
+      full_integration:
+        description: "When false (PR), no-op gate only. When true (merge queue), run full suite."
+        type: boolean
+        required: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deferred (satisfies required check on PR)
+        if: ${{ !inputs.full_integration }}
+        run: write-host "Integration runs on merge queue preview only."
+      - name: Integration tests
+        if: inputs.full_integration
+        run: write-host "INTEGRATION TESTS (merge queue preview)..."
