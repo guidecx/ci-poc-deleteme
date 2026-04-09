@@ -27,33 +27,3 @@ jobs:
         if: inputs.full_integration
         run: |
           write-host "INTENTIONAL FAIL — remove this step's exit 1 after testing merge queue / PR behavior."
-          exit 1
-
-      - name: Comment on PR when merge queue integration fails
-        if: failure() && inputs.full_integration
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: context.sha,
-            });
-            const runUrl = `${process.env.GITHUB_SERVER_URL}/${context.repo.owner}/${context.repo.repo}/actions/runs/${process.env.GITHUB_RUN_ID}`;
-            const body = [
-              '❌ **Integration tests failed** in the merge queue.',
-              '',
-              `[View workflow run](${runUrl})`,
-            ].join('\n');
-            if (!prs.length) {
-              core.notice('No PRs associated with commit ' + context.sha + '; skipping PR comment.');
-              return;
-            }
-            for (const pr of prs) {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: pr.number,
-                body,
-              });
-            }
