@@ -16,6 +16,11 @@ on:
   merge_group:
     types: [checks_requested]
 
+# One deploy pipeline at a time for main: P2 cannot reach prod approval/deploy until P1's run finishes (incl. prod approval wait).
+concurrency:
+  group: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && format('{0}-deploy-main', github.workflow) || format('{0}-{1}-{2}', github.workflow, github.event_name, github.run_id) }}
+  cancel-in-progress: false
+
 permissions:
   id-token: write
   contents: read
