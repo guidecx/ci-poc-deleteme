@@ -1,25 +1,12 @@
-name: CICD
+name: CI
 
 on:
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - .gitignore
-      - LICENSE
-      - README.md
-
   pull_request:
     branches:
       - main
 
   merge_group:
     types: [checks_requested]
-
-# One deploy pipeline at a time for main: P2 cannot reach prod approval/deploy until P1's run finishes (incl. prod approval wait).
-concurrency:
-  group: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && format('{0}-deploy-main', github.workflow) || format('{0}-{1}-{2}', github.workflow, github.event_name, github.run_id) }}
-  cancel-in-progress: false
 
 permissions:
   id-token: write
@@ -51,31 +38,4 @@ jobs:
     uses: ./.github/workflows/integration.yml
     with:
       full_integration: ${{ github.event_name == 'merge_group' }}
-    secrets: inherit
-
-  # Deploy only after merge lands on main (push).
-  staging-deploy:
-    if: github.event_name == 'push'
-    uses: ./.github/workflows/deploy-environment.yml
-    with:
-      environment: staging
-    secrets: inherit
-
-  prod-approval-gate:
-    needs: staging-deploy
-    if: github.event_name == 'push'
-    environment: prod
-    runs-on: ubuntu-latest
-    steps:
-      - name: approved
-        env:
-          ENV_NAME: prod
-        run: write-host "Approve for $($env:ENV_NAME)"
-
-  prod-deploy:
-    needs: prod-approval-gate
-    if: github.event_name == 'push'
-    uses: ./.github/workflows/deploy-environment.yml
-    with:
-      environment: prod
     secrets: inherit
